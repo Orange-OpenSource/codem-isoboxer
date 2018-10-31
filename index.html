@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>codem-isobox</title>
+
+    <script src="dist/iso_boxer.js"></script>
+
+</head>
+
+<script language="javascript">
+
+
+var parse = function (buffer) {
+    var isoFile = ISOBoxer.parseBuffer(buffer);
+    console.log(isoFile);
+
+    // var mdat = isoFile.fetch('mdat').data;
+
+    // var mdatBuffer = mdat.buffer.slice(mdat.byteOffset, mdat.byteOffset + mdat.byteLength);
+    // var vttFile = ISOBoxer.parseBuffer(mdatBuffer);
+    // console.log(vttFile);
+
+    // var payl = vttFile.fetch('payl');
+
+    // var payl_buffer = vttFile.write();
+
+    var tfdt = isoFile.fetch('tfdt');
+    var traf = isoFile.fetch('traf');
+    if (tfdt === null) {
+        tfdt = ISOBoxer.createFullBox('tfdt');
+        tfdt.version = 1;
+        tfdt.flags = 0;
+        tfdt.baseMediaDecodeTime = 0;
+        traf.append(tfdt);
+        //traf.append(tfdt, 'tfhd');
+    }
+
+    // var tfdt2 = ISOBoxer.createFullBox('tfdt');
+    // tfdt2.baseMediaDecodeTime = 10;
+    // isoFile.append(tfdt2, 0);
+
+    var outbuffer = isoFile.write();
+};
+
+var loadURL = function(type) {
+
+    var url = document.getElementById('url').value;
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            parse(xhr.response);
+        }
+    };
+    xhr.open("GET", url, true);
+    //xhr.responseType = "arraybuffer";
+    xhr.send();
+};
+
+var loadFile = function() {
+
+    var file = document.getElementById('file').files[0];
+
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+            parse(e.target.result);
+    };
+
+    reader.readAsArrayBuffer(file);
+};
+
+</script>
+
+<body>
+    <input type="text" name="url" id="url"/><button type="button" onclick="loadURL()" style="border-radius: 0;">Load URL</button><br/>
+    <input type="file" name="file" id="file"/><button type="button" onclick="loadFile()" style="border-radius: 0;">Load file</button><br/>
+</body>
+</html>
